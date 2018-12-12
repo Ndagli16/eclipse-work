@@ -19,7 +19,7 @@ class Task implements Runnable {
 
     private Account[] accounts;
     private String transaction;
-    private static Cache[] caches;
+    
 
     // TO DO: The sequential version of Task peeks at accounts
     // whenever it needs to get a value, and opens, updates, and closes
@@ -33,11 +33,6 @@ class Task implements Runnable {
     public Task(Account[] allAccounts, String trans) {
         accounts = allAccounts;
         transaction = trans;
-        caches = new Cache[numLetters];
-        for (int i = 0; i < allAccounts.length; i ++) {
-            System.out.println();
-            caches[i] = new Cache(allAccounts[i]);
-        }
     }
     
     // TO DO: parseAccount currently returns a reference to an account.
@@ -52,8 +47,7 @@ class Task implements Runnable {
         for (int i = 1; i < name.length(); i++) {
             if (name.charAt(i) != '*') throw new InvalidTransactionError();
             cl.caches[accountNum].setRead(true);
-            accountNum = (cl.caches[accountNum].peekCache() % numLetters);
-//            
+            accountNum = (cl.caches[accountNum].peekCache() % numLetters);          
 
         }
         return accountNum;
@@ -71,108 +65,72 @@ class Task implements Runnable {
         // tokenize transaction
         String[] commands = transaction.split(";");
         
-        for (int i = 0; i < commands.length; i++) {
-            String[] words = commands[i].trim().split("\\s");
-            if (words.length < 3) throw new InvalidTransactionError();
-
-            int accountNum = (int) (words[0].charAt(0)) - (int) 'A';
-            if (accountNum < A || accountNum > Z)
-                throw new InvalidTransactionError();
-       
-            
-            CacheList cl = new CacheList();
-            cl.caches[parseAccount(words[0], cl)].setWritten(true);
-            
-            if (!words[1].equals("="))
-                throw new InvalidTransactionError();
-            
-            System.out.println("MADE IT TO NUMBER 1");
-            int rhs_temp = 0;
-
-            if (words[2].charAt(0) >= '0' && words[2].charAt(0) <= '9') {
-                rhs_temp = parseAccountOrNum(words[2]);
-            } else if (words[2].charAt(0) >= 'A' && words[2].charAt(0) <= 'Z') {
-                int accountNum2 = parseAccount(words[2], cl);
-                cl.caches[accountNum2].setRead(true);
-                
-                rhs_temp = cl.caches[accountNum2].peekCache();
-            } else {
-                throw new InvalidTransactionError();
-            }
-            
-            System.out.println("MADE IT TO NUMBER 2");
-            if (words.length == 5) {
-                if (words[4].charAt(0) >= '0' && words[4].charAt(0) <= '9') {
-                    if (words[3].equals("+")){
-                        rhs_temp += parseAccountOrNum(words[4]);
-                    }
-                    else if(words[3].equals("-")){
-                        rhs_temp -= parseAccountOrNum(words[4]);
-                    }
-                    else{
-                        throw new InvalidTransactionError();
-                    }
-
-                }
-                else if (words[4].charAt(0) >= 'A' && words[4].charAt(0) <= 'Z') {
-                    int accountNum3 = parseAccount(words[4], cl);
-                    cl.caches[accountNum3].setRead(true);
-                    if (words[3].equals("+")){
-                        rhs_temp += cl.caches[accountNum3].peekCache();
-                    }
-                    else if(words[3].equals("-")){
-                        rhs_temp -= cl.caches[accountNum3].peekCache();
-                    }
-                    else{
-                        throw new InvalidTransactionError();
-                    }
-                }
-                else{
-                    throw new InvalidTransactionError();
-                }
-                
-                System.out.println("MADE IT TO NUMBER 3");
-                boolean gotLocks = false;
-                while(!gotLocks){
-                    try{
-                        for(int j=0; j < cl.caches.length; j++){
-                            cl.caches[j].openIfNeeded();
-                        }
-                    } catch (TransactionAbortException e){
-                    	for(int k=0; k < cl.caches.length; k++) {
-                    		cl.caches[k].closeIfNeeded();
-                    		}
-                    	continue;
-                    	}
-                    gotLocks = true;
-                }
-                
-                
-                System.out.println("MADE IT TO NUMBER 4");
-                try {
-                    for (int j = 0; j < cl.caches.length; j++) {
-                    	cl.caches[j].verify();
-                    	}
-                } catch (TransactionAbortException e) {
-                	for(int k=0; k < cl.caches.length; k++) {
-                		cl.caches[k].closeIfNeeded();
-                		}
-                	i--;
-                	continue;
-                	
-                	}
-                Account lhs = accounts[parseAccount(words[0], cl)];
-                
-                lhs.update(rhs_temp);
-                for(int k=0; k < cl.caches.length; k++) {
-            		cl.caches[k].closeIfNeeded();
-            		}
-                }
-            
-        System.out.println("commit: " + transaction);
+        while(true) {
+	        for (int i = 0; i < commands.length; i++) {
+	            String[] words = commands[i].trim().split("\\s");
+	            
+	            if (words.length < 3) throw new InvalidTransactionError();
+	
+	            int accountNum = (int) (words[0].charAt(0)) - (int) 'A';
+	            
+	            if (accountNum < A || accountNum > Z)
+	                throw new InvalidTransactionError();
+	       
+	            
+	            CacheList cl = new CacheList();
+	            cl.caches[parseAccount(words[0], cl)].setWritten(true);
+	            
+	            if (!words[1].equals("="))
+	                throw new InvalidTransactionError();
+	            
+	            int rhs_temp = 0;
+	
+	            if (words[2].charAt(0) >= '0' && words[2].charAt(0) <= '9') {
+	                rhs_temp = parseAccountOrNum(words[2]);
+	            } else if (words[2].charAt(0) >= 'A' && words[2].charAt(0) <= 'Z') {
+	                int accountNum2 = parseAccount(words[2], cl);
+	                cl.caches[accountNum2].setRead(true);
+	                
+	                rhs_temp = cl.caches[accountNum2].peekCache();
+	            } else {
+	                throw new InvalidTransactionError();
+	            }
+	        
+	            if (words.length == 5) {
+	                if (words[4].charAt(0) >= '0' && words[4].charAt(0) <= '9') {
+	                    if (words[3].equals("+")){
+	                        rhs_temp += parseAccountOrNum(words[4]);
+	                    }
+	                    else if(words[3].equals("-")){
+	                        rhs_temp -= parseAccountOrNum(words[4]);
+	                    }
+	                    else{
+	                        throw new InvalidTransactionError();
+	                    }
+	
+	                }
+	                else if (words[4].charAt(0) >= 'A' && words[4].charAt(0) <= 'Z') {
+	                    int accountNum3 = parseAccount(words[4], cl);
+	                    cl.caches[accountNum3].setRead(true);
+	                    if (words[3].equals("+")){
+	                        rhs_temp += cl.caches[accountNum3].peekCache();
+	                    }
+	                    else if(words[3].equals("-")){
+	                        rhs_temp -= cl.caches[accountNum3].peekCache();
+	                    }
+	                    else{
+	                        throw new InvalidTransactionError();
+	                    }
+	                }
+	                else{
+	                    throw new InvalidTransactionError();
+	                }
+	            }
+	        }
         }
-      }
+    }
 }
+
 public class MultithreadedServer {
 
 	// requires: accounts != null && accounts[i] != null (i.e., accounts are properly initialized)
@@ -193,14 +151,9 @@ public class MultithreadedServer {
 
         while ((line = input.readLine()) != null) {
             Task t = new Task(accounts, line);
-            pool.submit(t);
+            pool.execute(t);
         }
-        pool.shutdown();
-        try {
-            pool.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
-        } catch (InterruptedException e) {
-            System.out.println(e);
-        }
+
         
         input.close();
 
