@@ -20,6 +20,7 @@ class Task implements Runnable {
 
     private Account[] accounts;
     private String transaction;
+    private Cache[] cacheList;
     
 
     // TO DO: The sequential version of Task peeks at accounts
@@ -40,19 +41,19 @@ class Task implements Runnable {
     // You probably want to change it to return a reference to an
     // account *cache* instead.
     //
-    private int parseAccount(String name, CacheList cl) {
+    private Cache parseAccount(String name) {
         int accountNum = (int) (name.charAt(0)) - (int) 'A';
         if (accountNum < A || accountNum > Z)
             throw new InvalidTransactionError();
+        Cache c = cacheList[accountNum];
         
         for (int i = 1; i < name.length(); i++) {
             if (name.charAt(i) != '*') throw new InvalidTransactionError();
-            cl.caches[accountNum].peekCache();
-            accountNum = (cl.caches[accountNum].peekCache() % numLetters);          
-
+            accountNum = (cacheList[accountNum].peekCache() % numLetters);          
+            c = cacheList[accountNum];
         }
         
-        return accountNum;
+        return c;
     }
 
     private int parseAccountOrNum(String name) {
@@ -170,6 +171,7 @@ class Task implements Runnable {
 	        for (int i = constants.A; i <= constants.Z; i ++) {
         		
         	}
+	        break;
 	        
 	        
 	        /*try {
