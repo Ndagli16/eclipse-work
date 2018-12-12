@@ -1,35 +1,38 @@
 package hw12;
 
+import javax.imageio.metadata.IIOInvalidTreeException;
+
 public class Cache {
     private Account account;
-    private boolean read, written, opened;
+    private boolean read, written;
     private int initialValue, currentValue;
 
     public Cache(Account account) {
         this.account = account;
         read = false;
         written = false;
-        initialValue = account.peek();
-        currentValue = account.peek();
     }
 
-    // TODO: This might be a problem
     public int readCache() {
         read = true;
         return currentValue;
     }
     
+    public int peekCache() {
+    	if(read || written) {
+    		return currentValue;
+    	}
+    	else {
+    		initialValue = account.peek();
+    		currentValue = initialValue;
+    		read = true;
+    		return currentValue;
+    	}
+    	
+    }
+    
     public void writeCache(int value) {
         this.written = true;
-        currentValue = value;
-    }
-
-    public void setRead(boolean read) {
-        this.read = read;
-    }
-
-    public void setCache(int value) {
-        written = true;
         currentValue = value;
     }
 
@@ -38,13 +41,13 @@ public class Cache {
         if (written) readOrWrite = true;
         if (read) readOrWrite = false;
         if (written || read)  {
-            opened = true;
+            written = true;
             account.open(readOrWrite);
         }
     }
 
-    public void closeIfNeeded() {
-        if (opened) account.close();
+    public void closeCache() {
+        if (read || written) account.close();
     }
 
     public void commit() {
@@ -52,7 +55,7 @@ public class Cache {
     }
 
     public void verify() throws TransactionAbortException{
-        if (read && opened) {
+        if (read) {
         	account.verify(currentValue);
         }
     }
