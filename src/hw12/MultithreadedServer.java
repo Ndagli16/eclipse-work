@@ -1,5 +1,6 @@
 package hw12;
 
+import javax.security.auth.kerberos.KerberosKey;
 import javax.transaction.InvalidTransactionException;
 import java.io.BufferedReader;
 import java.io.FileReader;
@@ -46,7 +47,7 @@ class Task implements Runnable {
         
         for (int i = 1; i < name.length(); i++) {
             if (name.charAt(i) != '*') throw new InvalidTransactionError();
-            cl.caches[accountNum].readCache();
+            cl.caches[accountNum].peekCache();
             accountNum = (cl.caches[accountNum].peekCache() % numLetters);          
 
         }
@@ -79,7 +80,7 @@ class Task implements Runnable {
 	                throw new InvalidTransactionError();
 	            
 	            //set the rhs to be able to be written after processing
-	            //cl.caches[parseAccount(words[0], cl)].writeCache(0);
+	            cl.caches[parseAccount(words[0], cl)];
 	            
 	            if (!words[1].equals("="))
 	                throw new InvalidTransactionError();
@@ -132,15 +133,51 @@ class Task implements Runnable {
 	                    throw new InvalidTransactionError();
 	                }
 	            }
-	        }//for loop
+	        }
+	        //for loop
 	        
 	        //open the read lock before the write lock
+	        //open locks, if an exception is thrown then stop and close all accounts following this account
+	        int i = constants.A;
+	        try {
+	        	
+	        	for (i = constants.A; i <= constants.Z; i++) {
+	        		
+	        	}
+			} 
+	        	catch (Exception TransactionAbortExceptionn ) {
+				for (int j = A; j < i; j++) {
+					
+				}
+				continue;
+			}
+	        
+	        //try and verify do the same as the open locks 
+	        try {
+	        	for (int i = constants.A; i <= constants.Z; i ++) {
+	        		
+	        	}
+			} 
+	        	catch (Exception TransactionAbortException) {
+				// TODO: handle exception
+			}
+	        
+	        //loops to commit
+	        for (int i = constants.A; i <= constants.Z; i ++) {
+        		
+        	}
+	        //loops to close
+	        for (int i = constants.A; i <= constants.Z; i ++) {
+        		
+        	}
+	        
 	        
 	        /*try {
-				open lock for all caches
-				VerifyError all caches
-				commit all caches
-				close lock for all caches
+				open lock for all caches wrap in a try catch else break if an error is found
+				then close all accounts from that one foward 
+				VerifyError all caches wrap in a try catch else break 
+				commit all caches dont wrap in a try catch
+				close lock for all caches dont wrap in a try catch
 				break
 			} catch (Exception e) {
 				close lock for all caches
@@ -171,7 +208,7 @@ public class MultithreadedServer {
         // TO DO: you will need to create an Executor and then modify the
         // following loop to feed tasks to the executor instead of running them
         // directly.
-        final ExecutorService pool = Executors.newCachedThreadPool();
+        final ExecutorService pool = Executors.newFixedThreadPool(3);
 
         while ((line = input.readLine()) != null) {
             Task t = new Task(accounts, line);
