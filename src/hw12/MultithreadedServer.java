@@ -1,7 +1,5 @@
 package hw12;
 
-import javax.security.auth.kerberos.KerberosKey;
-import javax.transaction.InvalidTransactionException;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
@@ -157,7 +155,6 @@ class Task implements Runnable {
 	        for (int k = A; k <= Z; k ++) {
 	        	cacheList[k].closeCache();
         	}
-	        System.out.println("close: " + transaction);
 	        
 	        break;
 	        
@@ -185,21 +182,22 @@ public class MultithreadedServer {
         // following loop to feed tasks to the executor instead of running them
         // directly.
         final ExecutorService pool = Executors.newFixedThreadPool(3);
-
+        
         while ((line = input.readLine()) != null) {
             Task t = new Task(accounts, line);
             pool.submit(t);
         }
+        
         pool.shutdown();
         try {
         	pool.awaitTermination(60, TimeUnit.SECONDS);
 		} catch (InterruptedException e) {
-			System.out.println(e);
 		}
         
         input.close();
 
     }
-    }
+    
+}
 
 

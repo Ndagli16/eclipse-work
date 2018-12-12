@@ -33,7 +33,7 @@ public class MultithreadedServerTest extends TestCase {
 	    }
 	 }    
      
-     @Test
+     /*@Test
 	 public void testIncrement() throws IOException {
 	
 		// initialize accounts 
@@ -49,8 +49,21 @@ public class MultithreadedServerTest extends TestCase {
 			Character c = new Character((char) (i+'A'));
 			assertEquals("Account "+c+" differs",Z-i+1,accounts[i].getValue());
 		}		
-
-	 }
-	 	  	 
+		dumpAccounts();
+	 }*/
+     
+     @Test
+	 public void testTinyRotate() throws IOException {
 	
+    	// initialize accounts 
+ 		accounts = new Account[numLetters];
+ 		for (int i = A; i <= Z; i++) {
+ 			accounts[i] = new Account(Z-i);
+ 		}			 
+ 					 
+		MultithreadedServer.runServer("src/hw12/data/tinyrotate", accounts);
+				
+		dumpAccounts();
+		
+	 } 
 }
