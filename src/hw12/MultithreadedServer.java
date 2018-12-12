@@ -57,136 +57,110 @@ class Task implements Runnable {
     }
 
     private int parseAccountOrNum(String name) {
+    	int rtn;
         if (name.charAt(0) >= '0' && name.charAt(0) <= '9') {
-            return new Integer(name).intValue();
+             rtn = new Integer(name).intValue();
         }
-        return 0;
+        else {
+        	rtn = parseAccount(name).peekCache();
+        }
+        return rtn;
     }
 
     public void run() {
         // tokenize transaction
-        String[] commands = transaction.split(";");
         
         while(true) {
-	        for (int i = 0; i < commands.length; i++) {
-	        	 CacheList cl = new CacheList();
-	        	
+        	cacheList = new Cache[constants.numLetters];
+        	for (int k = A; k <= Z; k++) {
+                cacheList[k] = new Cache(accounts[k]);
+                
+        	}
+        	
+        	String[] commands = transaction.split(";");
+        	for (int i = 0; i < commands.length; i++) {
+	        	 
 	        	String[] words = commands[i].trim().split("\\s");
-	            
 	            if (words.length < 3) throw new InvalidTransactionError();
 	
-	            int accountNum = (int) (words[0].charAt(0)) - (int) 'A';
-	            
-	            if (accountNum < A || accountNum > Z)
-	                throw new InvalidTransactionError();
-	            
-	            //set the rhs to be able to be written after processing
-	            cl.caches[parseAccount(words[0], cl)];
+	            Cache lhs = parseAccount(words[0]);
 	            
 	            if (!words[1].equals("="))
 	                throw new InvalidTransactionError();
 	            
-	            int rhs_temp = 0;
-	
-	            if (words[2].charAt(0) >= '0' && words[2].charAt(0) <= '9') {
-	                rhs_temp = parseAccountOrNum(words[2]);
-	                
-	            } 
-	            else if (words[2].charAt(0) >= 'A' && words[2].charAt(0) <= 'Z') {
-	                
-	            	int accountNum2 = parseAccount(words[2], cl);
-	                cl.caches[accountNum2].peekCache();
-	                rhs_temp = cl.caches[accountNum2].peekCache();
-	                
-	            } 
-	            else {
-	                throw new InvalidTransactionError();
-	            }
-	            
-	            if (words.length == 5) {
-	                if (words[4].charAt(0) >= '0' && words[4].charAt(0) <= '9') {
-	                    if (words[3].equals("+")){
-	                        rhs_temp += parseAccountOrNum(words[4]);
-	                    }
-	                    else if(words[3].equals("-")){
-	                        rhs_temp -= parseAccountOrNum(words[4]);
-	                    }
-	                    else{
-	                        throw new InvalidTransactionError();
-	                    }
-	
-	                }
-	                else if (words[4].charAt(0) >= 'A' && words[4].charAt(0) <= 'Z') {
-	                    int accountNum3 = parseAccount(words[4], cl);
-	                    cl.caches[accountNum3].readCache();
-	                    
-	                    if (words[3].equals("+")){
-	                        rhs_temp += cl.caches[accountNum3].peekCache();
-	                    } 
-	                    else if(words[3].equals("-")){
-	                        rhs_temp -= cl.caches[accountNum3].peekCache();
-	                    }
-	                    else{
-	                        throw new InvalidTransactionError();
-	                    }
-	                }
-	                else{
+	            int rhs = parseAccountOrNum(words[2]);
+	            for (int j = 3; j < words.length; j+=2) {
+	                if (words[j].equals("+"))
+	                    rhs += parseAccountOrNum(words[j+1]);
+	                else if (words[j].equals("-"))
+	                    rhs -= parseAccountOrNum(words[j+1]);
+	                else
 	                    throw new InvalidTransactionError();
-	                }
 	            }
-	        }
+	            lhs.writeCache(rhs);
+	            
+	        } 
 	        //for loop
+	        
+	        /*try {
+			open lock for all caches wrap in a try catch else break if an error is found
+			then close all accounts from that one foward 
+			VerifyError all caches wrap in a try catch else break 
+			commit all caches dont wrap in a try catch
+			close lock for all caches dont wrap in a try catch
+			break
+		} catch (Exception e) {
+			close lock for all caches
+			continue
+		}*/
 	        
 	        //open the read lock before the write lock
 	        //open locks, if an exception is thrown then stop and close all accounts following this account
-	        int i = constants.A;
+	        int i = 0;
+	        
 	        try {
-	        	
-	        	for (i = constants.A; i <= constants.Z; i++) {
-	        		
+	        	for (i = A; i <= Z; i++) {
+	        		cacheList[i].openCache();
 	        	}
 			} 
-	        	catch (Exception TransactionAbortExceptionn ) {
-				for (int j = A; j < i; j++) {
-					
+	        catch (TransactionAbortException e) {
+	        	for (int j = A; j < i; j++) {
+	        		cacheList[j].closeCache();
 				}
+	        	System.out.println("open abort: " + transaction);
 				continue;
 			}
 	        
 	        //try and verify do the same as the open locks 
 	        try {
-	        	for (int i = constants.A; i <= constants.Z; i ++) {
-	        		
+	        	for (i = A; i <= Z; i++) {
+	        		cacheList[i].verify();
 	        	}
-			} 
-	        	catch (Exception TransactionAbortException) {
-				// TODO: handle exception
+			}
+	        
+	        catch (TransactionAbortException e) {
+	        	for (int j = A; j < i; j++) {
+	        		cacheList[j].closeCache();
+				}
+	        	System.out.println("verify abort: " + transaction);
+				continue;
 			}
 	        
 	        //loops to commit
-	        for (int i = constants.A; i <= constants.Z; i ++) {
-        		
+	        for (int k = A; k <= Z; k ++) {
+        		cacheList[k].commit();
         	}
+	        
+	        System.out.println("commit: " + transaction);
+	        
 	        //loops to close
-	        for (int i = constants.A; i <= constants.Z; i ++) {
-        		
+	        for (int k = A; k <= Z; k ++) {
+	        	cacheList[k].closeCache();
         	}
+	        System.out.println("close: " + transaction);
+	        
 	        break;
 	        
-	        
-	        /*try {
-				open lock for all caches wrap in a try catch else break if an error is found
-				then close all accounts from that one foward 
-				VerifyError all caches wrap in a try catch else break 
-				commit all caches dont wrap in a try catch
-				close lock for all caches dont wrap in a try catch
-				break
-			} catch (Exception e) {
-				close lock for all caches
-				continue
-			}*/
-	        
-	        //Must open a read lock before a right lock
         }//while loop
         
     }//end of run
@@ -214,7 +188,7 @@ public class MultithreadedServer {
 
         while ((line = input.readLine()) != null) {
             Task t = new Task(accounts, line);
-            pool.execute(t);
+            pool.submit(t);
         }
         pool.shutdown();
         try {

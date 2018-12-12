@@ -1,7 +1,5 @@
 package hw12;
 
-import javax.imageio.metadata.IIOInvalidTreeException;
-
 public class Cache {
     private Account account;
     private boolean read, written;
@@ -11,11 +9,8 @@ public class Cache {
         this.account = account;
         read = false;
         written = false;
-    }
-
-    public int readCache() {
-        read = true;
-        return currentValue;
+        initialValue = account.peek();
+        currentValue = account.peek();
     }
     
     public int peekCache() {
@@ -26,8 +21,8 @@ public class Cache {
     		initialValue = account.peek();
     		currentValue = initialValue;
     		read = true;
-    		return currentValue;
     	}
+    	return currentValue;
     	
     }
     
@@ -37,12 +32,11 @@ public class Cache {
     }
 
     public void openCache() throws TransactionAbortException {
-        boolean readOrWrite = false;
-        if (written) readOrWrite = true;
-        if (read) readOrWrite = false;
-        if (written || read)  {
-            written = true;
-            account.open(readOrWrite);
+        if (read) {
+        	account.open(false);
+        }
+        if(written) {
+        	account.open(true);
         }
     }
 
@@ -51,12 +45,14 @@ public class Cache {
     }
 
     public void commit() {
-        if (written) account.update(currentValue);
+        if (written) {
+        	account.update(currentValue);
+        }
     }
 
     public void verify() throws TransactionAbortException{
         if (read) {
-        	account.verify(currentValue);
+        	account.verify(initialValue);
         }
     }
 }
