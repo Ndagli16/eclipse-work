@@ -1,10 +1,14 @@
 package hw12;
 
+
 public class Cache {
     private Account account;
     private boolean read, written, open;
     private int initialValue, currentValue;
-
+    
+    // requires: name != null
+ 	// modifies: cacheList
+ 	// effects: changes the cacheList depending on the input passed in
     public Cache(Account account) {
         this.account = account;
         read = false;
@@ -14,7 +18,7 @@ public class Cache {
         currentValue = account.peek();
     }
     
-    public int peekCache() {
+    /*public int peekCache() {
     	if(read || written) {
     		return currentValue;
     	}
@@ -25,13 +29,27 @@ public class Cache {
     	}
     	return currentValue;
     	
+    }*/
+
+    // requires: name != null
+ 	// modifies: cacheList
+ 	// effects: changes the cacheList depending on the input passed in
+    public int readCache() {
+    	read = true;
+    	return currentValue;
     }
     
+    // requires: name != null
+ 	// modifies: cacheList
+ 	// effects: changes the cacheList depending on the input passed in
     public void writeCache(int value) {
         this.written = true;
         currentValue = value;
     }
 
+    // requires: name != null
+ 	// modifies: cacheList
+ 	// effects: changes the cacheList depending on the input passed in
     public void openCache() throws TransactionAbortException {
         if (read) {
         	account.open(false);
@@ -43,16 +61,25 @@ public class Cache {
         }
     }
 
+    // requires: name != null
+ 	// modifies: cacheList
+ 	// effects: changes the cacheList depending on the input passed in
     public void closeCache() {
         if (open) account.close();
     }
 
+    // requires: name != null
+ 	// modifies: cacheList
+ 	// effects: changes the cacheList depending on the input passed in
     public void commit() {
         if (written) {
         	account.update(currentValue);
         }
     }
 
+    // requires: name != null
+ 	// modifies: cacheList
+ 	// effects: changes the cacheList depending on the input passed in
     public void verify() throws TransactionAbortException{
         if (read) {
         	account.verify(initialValue);

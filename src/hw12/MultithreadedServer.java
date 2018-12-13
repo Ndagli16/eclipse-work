@@ -38,7 +38,10 @@ class Task implements Runnable {
     // TO DO: parseAccount currently returns a reference to an account.
     // You probably want to change it to return a reference to an
     // account *cache* instead.
-    //
+    
+	// requires: name != null
+	// modifies: cacheList
+	// effects: changes the cacheList depending on the input passed in
     private Cache parseAccount(String name) {
         int accountNum = (int) (name.charAt(0)) - (int) 'A';
         if (accountNum < A || accountNum > Z)
@@ -47,40 +50,54 @@ class Task implements Runnable {
         
         for (int i = 1; i < name.length(); i++) {
             if (name.charAt(i) != '*') throw new InvalidTransactionError();
-            accountNum = (cacheList[accountNum].peekCache() % numLetters);          
+            accountNum = (cacheList[accountNum].readCache() % numLetters);          
             c = cacheList[accountNum];
         }
         
         return c;
     }
-
+    
+	// requires: name != null
+	// modifies: n/a
+	// effects: returns a integer value of a string, or returns the value in the cacheList
     private int parseAccountOrNum(String name) {
     	int rtn;
         if (name.charAt(0) >= '0' && name.charAt(0) <= '9') {
              rtn = new Integer(name).intValue();
         }
         else {
-        	rtn = parseAccount(name).peekCache();
+        	rtn = parseAccount(name).readCache();
         }
         return rtn;
     }
 
+	// requires: nothing
+	// modifies: accounts and cacheList 
+	// effects: accounts change according to transactions in inputFile by using the local cache
+    // 			in order to process transactions and then using the cache class in order to determine
+    //			which transactions can be processed by at what time by each thread in the multithreaded
+    // 			process of task.
     public void run() {
-        // tokenize transaction
         
+    	//overall loop which runs until all the transactions have been processed
         while(true) {
+        	
+        	//instantiate the local cachelist
         	cacheList = new Cache[constants.numLetters];
         	for (int k = A; k <= Z; k++) {
                 cacheList[k] = new Cache(accounts[k]);
                 
         	}
         	
+        	//parsing the input file 
         	String[] commands = transaction.split(";");
         	for (int i = 0; i < commands.length; i++) {
 	        	 
 	        	String[] words = commands[i].trim().split("\\s");
 	            if (words.length < 3) throw new InvalidTransactionError();
-	
+	            
+	            
+	            //sets the read lock for the cache of the account.
 	            Cache lhs = parseAccount(words[0]);
 	            
 	            if (!words[1].equals("="))
@@ -95,26 +112,12 @@ class Task implements Runnable {
 	                else
 	                    throw new InvalidTransactionError();
 	            }
+	            //sets the write lock for the account in the cache
 	            lhs.writeCache(rhs);
 	            
-	        } 
-	        //for loop
-	        
-	        /*try {
-			open lock for all caches wrap in a try catch else break if an error is found
-			then close all accounts from that one foward 
-			VerifyError all caches wrap in a try catch else break 
-			commit all caches dont wrap in a try catch
-			close lock for all caches dont wrap in a try catch
-			break
-		} catch (Exception e) {
-			close lock for all caches
-			continue
-		}*/
-	        
-	        //open the read lock before the write lock
-	        //open locks, if an exception is thrown then stop and close all accounts following this account
-	        
+	        }
+        	
+	        //for loop 
         	/*int i = 0;
 	        
 	        try {
@@ -159,6 +162,11 @@ class Task implements Runnable {
 	        
 	        break;*/
 	        
+        	//Code needed for concurrency programming, Loops over the entire cache list 4 different time
+        	//and in order first attempts to open each caches locks, and then verifies all caches, then commits
+        	//the caches, and finally closes all the locks for the caches. If it any point there is an exception
+        	//is thrown then checks will end and all the accounts will be closed and the loop will restart from the top
+        	//restart the transaction
         	try {
         		for (int i = A; i <= Z; i++) {
 	        		cacheList[i].openCache();

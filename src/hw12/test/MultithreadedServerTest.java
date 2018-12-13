@@ -42,8 +42,8 @@ public class MultithreadedServerTest extends TestCase {
 			accounts[i] = new Account(Z-i);
 		}			 
 		
-		MultithreadedServer.runServer("src/hw12/data/increment", accounts);
-		//MultithreadedServer.runServer("hw12/data/increment", accounts);
+		//MultithreadedServer.runServer("src/hw12/data/increment", accounts);
+		MultithreadedServer.runServer("hw12/data/increment", accounts);
 	
 		// assert correct account values
 		for (int i = A; i <= Z; i++) {
@@ -53,7 +53,7 @@ public class MultithreadedServerTest extends TestCase {
 		dumpAccounts();
 	 }
     
-    /* @Test
+     @Test
 	 public void testTinyRotate() throws IOException {
 	
     	// initialize accounts 
@@ -62,10 +62,26 @@ public class MultithreadedServerTest extends TestCase {
  			accounts[i] = new Account(Z-i);
  		}			 
  					 
-		MultithreadedServer.runServer("src/hw12/data/tinyrotate", accounts);
-		//MultithreadedServer.runServer("hw12/data/tinyrotate", accounts);
+		//MultithreadedServer.runServer("src/hw12/data/tinyrotate", accounts);
+		MultithreadedServer.runServer("hw12/data/tinyrotate", accounts);
 				
-		dumpAccounts();
+		//dumpAccounts();
 		
-	 }*/ 
+	 }
+     
+     @Test
+	 public void atomic() throws IOException {
+	
+    	// initialize accounts 
+ 		accounts = new Account[numLetters];
+ 		for (int i = A; i <= Z; i++) {
+ 			accounts[i] = new Account(Z-i);
+ 		}			 
+ 					 
+		//MultithreadedServer.runServer("src/hw12/data/tinyrotate", accounts);
+		MultithreadedServer.runServer("hw12/data/tinyrotate", accounts);
+				
+		//dumpAccounts();
+		
+	 }
 }
