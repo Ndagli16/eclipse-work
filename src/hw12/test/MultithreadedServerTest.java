@@ -33,7 +33,7 @@ public class MultithreadedServerTest extends TestCase {
 	    }
 	 }    
      
-     /*@Test
+    @Test
 	 public void testIncrement() throws IOException {
 	
 		// initialize accounts 
@@ -43,6 +43,7 @@ public class MultithreadedServerTest extends TestCase {
 		}			 
 		
 		MultithreadedServer.runServer("src/hw12/data/increment", accounts);
+		//MultithreadedServer.runServer("hw12/data/increment", accounts);
 	
 		// assert correct account values
 		for (int i = A; i <= Z; i++) {
@@ -50,9 +51,9 @@ public class MultithreadedServerTest extends TestCase {
 			assertEquals("Account "+c+" differs",Z-i+1,accounts[i].getValue());
 		}		
 		dumpAccounts();
-	 }*/
-     
-     @Test
+	 }
+    
+    /* @Test
 	 public void testTinyRotate() throws IOException {
 	
     	// initialize accounts 
@@ -62,8 +63,9 @@ public class MultithreadedServerTest extends TestCase {
  		}			 
  					 
 		MultithreadedServer.runServer("src/hw12/data/tinyrotate", accounts);
+		//MultithreadedServer.runServer("hw12/data/tinyrotate", accounts);
 				
 		dumpAccounts();
 		
-	 } 
+	 }*/ 
 }

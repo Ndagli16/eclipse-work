@@ -114,7 +114,8 @@ class Task implements Runnable {
 	        
 	        //open the read lock before the write lock
 	        //open locks, if an exception is thrown then stop and close all accounts following this account
-	        int i = 0;
+	        
+        	/*int i = 0;
 	        
 	        try {
 	        	for (i = A; i <= Z; i++) {
@@ -156,8 +157,36 @@ class Task implements Runnable {
 	        	cacheList[k].closeCache();
         	}
 	        
-	        break;
+	        break;*/
 	        
+        	try {
+        		for (int i = A; i <= Z; i++) {
+	        		cacheList[i].openCache();
+	        	}
+        		
+        		for (int i = A; i <= Z; i++) {
+	        		cacheList[i].verify();
+	        	}
+        		
+        		for (int k = A; k <= Z; k ++) {
+            		cacheList[k].commit();
+            	}
+        		
+        		System.out.println("commit: " + transaction);
+        		
+        		for (int k = A; k <= Z; k ++) {
+		        	cacheList[k].closeCache();
+	        	}
+        		
+        		break;
+        		
+			} catch (TransactionAbortException e) {
+				for (int k = A; k <= Z; k ++) {
+		        	cacheList[k].closeCache();
+	        	}
+				continue;
+			}
+        	
         }//while loop
         
     }//end of run
